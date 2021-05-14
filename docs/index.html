@@ -1,0 +1,36 @@
+<head>
+  <style>
+    #mapid { height: 100%; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+</head>
+<body>
+
+  <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+
+  <! -- leaflet.ajax allows loading geoJSON directly via AJAX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+
+  <div id="mapid"></div>
+    <script>
+      var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+
+      mymap.on('move', function(){
+        console.log("moveend")
+      });
+
+      // add the OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(mymap);
+
+      var geojson = new L.GeoJSON.AJAX("http://[::]:8000/test.geojson")
+
+      geojson.on('data:loaded', function(){
+        geojson.addTo(mymap);
+      });
+    </script>
+  </div>
+</body>
