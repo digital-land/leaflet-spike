@@ -28,7 +28,7 @@
 
       function fetchFeatures(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy) {
         console.log("fetching features for area: ", bbox_minx, bbox_maxx, bbox_miny, bbox_maxy)
-        var geojson = new L.GeoJSON.AJAX(`https://datasette-demo.digital-land.info/view_model/bounded_geography.json?_json=geometry&_shape=array&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}`, {
+        var geojson = new L.GeoJSON.AJAX(`https://datasette-demo.digital-land.info/view_model/bounded_geography_simplified.json?_json=geometry&_shape=array&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}`, {
           middleware:function(data) {
             console.log("middleware!")
             console.log(data)
