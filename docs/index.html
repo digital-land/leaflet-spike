@@ -12,8 +12,6 @@
   <!-- leaflet.ajax allows loading geoJSON directly via AJAX -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
 
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-vector-layers/1.6.0/lvector.min.js"></script> -->
-
   <div id="mapid"></div>
     <script>
       var mymap = L.map('mapid').setView([51.505, -0.09], 8);
@@ -26,40 +24,49 @@
 
       var myLayer = L.geoJSON().addTo(mymap);
 
+      function onEachFeature(feature, layer) {
+        if (feature.properties) {
+          layer.bindPopup(`
+            <h3>${feature.properties.name}</h3>
+            ${feature.properties.type}<br>
+            <a href=${dlBaseUrl}${feature.properties.slug}>${feature.properties.slug}</a>
+          `);
+        }
+      }
+
+      var baseUrl = "https://datasette-demo.digital-land.info/view_model"
+      <!-- baseUrl = "http://localhost:8091/view_model" -->
+
+      var dlBaseUrl = "http://digital-land.github.io"
+
       function fetchFeatures(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy) {
-        console.log("fetching features for area: ", bbox_minx, bbox_maxx, bbox_miny, bbox_maxy)
-        var geojson = new L.GeoJSON.AJAX(`https://datasette-demo.digital-land.info/view_model/bounded_geography_simplified.json?_json=geometry&_shape=array&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}`, {
-          middleware:function(data) {
-            console.log("middleware!")
-            console.log(data)
-            return data.map(myFunction)
-          }
+        var url = `${baseUrl}/bounded_geography_simplified.json?_json=simple_features&_shape=arrayfirst&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}`
+        console.log(url)
+        var geojson = new L.GeoJSON.AJAX(url, {
+          style: function(feature) {
+            switch (feature.properties.type) {
+                    case 'local-authority-district': return {color: "#EE7800", weight: 2};
+                    case 'conservation-area': return {color: "#78AA00", weight: 2};
+                    case 'brownfield-land': return {color: "#0078ff", weight: 2};
+            }
+          },
+          onEachFeature: onEachFeature,
         })
         geojson.on('data:loaded', function() {
-          console.log("DATA LOADED", geojson)
-          <!-- myLayer.addData(geojson) -->
           myLayer.clearLayers()
           geojson.addTo(myLayer)
         })
       }
 
       mymap.on('moveend', function(event){
-        console.log("moveend")
         console.log(event.target.getBounds())
         var bounds = event.target.getBounds()
         fetchFeatures(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat)
       });
 
-      function myFunction(value, index, array) {
-        return value.geometry;
-      }
+      var bounds = mymap.getBounds()
+      fetchFeatures(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat)
 
-
-      <!-- geojson.on('data:loaded', function(){ -->
-      <!--   console.log("finished") -->
-      <!--   console.log(geojson) -->
-      <!--   <!-1- geojson.addTo(mymap); -1-> -->
-      <!-- }); -->
     </script>
   </div>
 </body>
