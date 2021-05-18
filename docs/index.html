@@ -43,6 +43,10 @@
         var url = `${baseUrl}/bounded_geography_simplified.json?_json=simple_features&_shape=arrayfirst&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}`
         console.log(url)
         var geojson = new L.GeoJSON.AJAX(url, {
+          middleware: function(data) {
+                  console.log("feature count:", data.length)
+                  return data
+          },
           style: function(feature) {
             switch (feature.properties.type) {
                     case 'local-authority-district': return {color: "#EE7800", weight: 2};
