@@ -1,6 +1,6 @@
 <head>
   <style>
-    #mapid { height: 100%; }
+    #mapid { height: 80%; }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
 </head>
@@ -12,12 +12,14 @@
   <!-- leaflet.ajax allows loading geoJSON directly via AJAX -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
 
+  <div id="control"><button onclick="showLayers()">Show Layers</button></div>
+
   <div id="mapid"></div>
     <script>
       var mymap = L.map('mapid').setView([51.505, -0.09], 8);
 
       // add the OpenStreetMap tiles
-            L.tileLayer('https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+      L.tileLayer('https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
       }).addTo(mymap);
@@ -25,6 +27,7 @@
       var myLayer = L.geoJSON().addTo(mymap);
 
       function onEachFeature(feature, layer) {
+        <!-- console.log("onEachFeature", feature) -->
         if (feature.properties) {
           layer.bindPopup(`
             <h3>${feature.properties.name}</h3>
@@ -39,12 +42,37 @@
 
       var dlBaseUrl = "http://digital-land.github.io"
 
+      var pageSize = 100
+
+      function showLayers() {
+        let i = 0;
+        mymap.eachLayer(function(layer) {i += 1})
+        console.log("layer count", i)
+      }
+
+      function buildUrl(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy, after_rowid) {
+        return `${baseUrl}/bounded_geography_simplified_paged.json?_json=geojson_simple&_shape=arrayfirst&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}&after=${after_rowid}`
+      }
+
+      var firstLoad = true
+
       function fetchFeatures(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy) {
-        var url = `${baseUrl}/bounded_geography_simplified.json?_json=simple_features&_shape=arrayfirst&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}`
-        console.log(url)
+        url = self.buildUrl(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy, 0)
+        console.log("fetchFeatures", url)
+        firstLoad = true
+
         var geojson = new L.GeoJSON.AJAX(url, {
           middleware: function(data) {
                   console.log("feature count:", data.length)
+                  if (data.length >= pageSize && firstLoad) {
+                    console.log("pageSize exceeded, fetching next batch")
+                    lastItem = data[data.length-1]
+                    console.log("lastItem.rowid", lastItem.id)
+                    url = buildUrl(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy, lastItem.id)
+                    console.log("continueFetch", url)
+                    geojson.addUrl(url)
+                    firstLoad = false
+                  }
                   return data
           },
           style: function(feature) {
@@ -56,15 +84,19 @@
           },
           onEachFeature: onEachFeature,
         })
-        geojson.on('data:loaded', function() {
-          myLayer.clearLayers()
-          geojson.addTo(myLayer)
+
+        geojson.addTo(myLayer)
+
+        geojson.on('data:loaded', function(data) {
+          console.log("data loaded")
+          <!-- console.log(data) -->
+          <!-- geojson.addTo(myLayer) -->
         })
       }
 
       mymap.on('moveend', function(event){
-        console.log(event.target.getBounds())
         var bounds = event.target.getBounds()
+        myLayer.clearLayers()
         fetchFeatures(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat)
       });
 
