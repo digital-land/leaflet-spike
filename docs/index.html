@@ -9,33 +9,10 @@
   <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
 
-  <!-- leaflet.ajax allows loading geoJSON directly via AJAX -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
-
   <div id="control"><button onclick="showLayers()">Show Layers</button></div>
-
   <div id="mapid"></div>
     <script>
-      var mymap = L.map('mapid').setView([51.505, -0.09], 8);
-
-      // add the OpenStreetMap tiles
-      L.tileLayer('https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-      }).addTo(mymap);
-
-      var myLayer = L.geoJSON().addTo(mymap);
-
-      function onEachFeature(feature, layer) {
-        <!-- console.log("onEachFeature", feature) -->
-        if (feature.properties) {
-          layer.bindPopup(`
-            <h3>${feature.properties.name}</h3>
-            ${feature.properties.type}<br>
-            <a href=${dlBaseUrl}${feature.properties.slug}>${feature.properties.slug}</a>
-          `);
-        }
-      }
+      var theMap = L.map('mapid').setView([51.505, -0.09], 8);
 
       var baseUrl = "https://datasette-demo.digital-land.info/view_model"
       <!-- baseUrl = "http://localhost:8091/view_model" -->
@@ -44,64 +21,94 @@
 
       var pageSize = 100
 
-      function showLayers() {
-        let i = 0;
-        mymap.eachLayer(function(layer) {i += 1})
-        console.log("layer count", i)
-      }
+      // add the OpenStreetMap tiles
+      L.tileLayer('https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(theMap);
 
-      function buildUrl(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy, after_rowid) {
-        return `${baseUrl}/bounded_geography_simplified_paged.json?_json=geojson_simple&_shape=arrayfirst&bbox_minx=${bbox_minx}&bbox_maxx=${bbox_maxx}&bbox_miny=${bbox_miny}&bbox_maxy=${bbox_maxy}&after=${after_rowid}`
-      }
+      function fetchFeatures(progress, url, geoJsonLayer) {
+        console.log("fetchFeatures", url.href)
+        return new Promise((resolve, reject) => fetch(url)
+          .then(response => {
+              if (response.status !== 200)  {
+                throw `${response.status}: ${response.statusText}`;
+              }
+              response.json().then(data => { 
+                geoJsonLayer.addData(data)
 
-      var firstLoad = true
+                if(data.length >= pageSize && firstLoad) {
+                  progress && progress(geoJsonLayer);
+                  lastItem = data[data.length - 1]
+                  let nextUrl = url
+                  nextUrl.searchParams.set("after", lastItem.id)
+                  console.log(nextUrl.href)
+                  fetchFeatures(progress, nextUrl, geoJsonLayer).then(resolve).catch(reject)
+                } else {
+                  resolve(geoJsonLayer);
+                }
+              }).catch(reject);
+          }).catch(reject));
+        }
 
-      function fetchFeatures(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy) {
-        url = self.buildUrl(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy, 0)
-        console.log("fetchFeatures", url)
-        firstLoad = true
+        function progressCallback(geoJsonLayer) {
+          console.log(`${geoJsonLayer.getLayers().length} features fetched`);
+        }
 
-        var geojson = new L.GeoJSON.AJAX(url, {
-          middleware: function(data) {
-                  console.log("feature count:", data.length)
-                  if (data.length >= pageSize && firstLoad) {
-                    console.log("pageSize exceeded, fetching next batch")
-                    lastItem = data[data.length-1]
-                    console.log("lastItem.rowid", lastItem.id)
-                    url = buildUrl(bbox_minx, bbox_maxx, bbox_miny, bbox_maxy, lastItem.id)
-                    console.log("continueFetch", url)
-                    geojson.addUrl(url)
-                    firstLoad = false
-                  }
-                  return data
-          },
+        function buildUrl(bounds, after_rowid=0) {
+          return new URL(`${baseUrl}/bounded_geography_simplified_paged.json?_json=geojson_simple&_shape=arrayfirst&bbox_minx=${bounds._southWest.lng}&bbox_maxx=${bounds._northEast.lng}&bbox_miny=${bounds._southWest.lat}&bbox_maxy=${bounds._northEast.lat}&after=${after_rowid}`)
+        }
+
+        var geoJsonLayerOptions = {
           style: function(feature) {
             switch (feature.properties.type) {
-                    case 'local-authority-district': return {color: "#EE7800", weight: 2};
-                    case 'conservation-area': return {color: "#78AA00", weight: 2};
-                    case 'brownfield-land': return {color: "#0078ff", weight: 2};
+              case 'local-authority-district': return {color: "#EE7800", weight: 2};
+              case 'conservation-area': return {color: "#78AA00", weight: 2};
+              case 'brownfield-land': return {color: "#0078ff", weight: 2};
             }
           },
           onEachFeature: onEachFeature,
-        })
+        }
 
-        geojson.addTo(myLayer)
+        var geojsonConservationArea = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
+        var geojsonLocalAreaDistrict = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
+        var geojsonBrownfieldLand = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
 
-        geojson.on('data:loaded', function(data) {
-          console.log("data loaded")
-          <!-- console.log(data) -->
-          <!-- geojson.addTo(myLayer) -->
-        })
-      }
+        function onEachFeature(feature, layer) {
+          if (feature.properties) {
+            layer.bindPopup(`
+              <h3>${feature.properties.name}</h3>
+              ${feature.properties.type}<br>
+              <a href=${dlBaseUrl}${feature.properties.slug}>${feature.properties.slug}</a>
+            `);
+          }
+        }
 
-      mymap.on('moveend', function(event){
-        var bounds = event.target.getBounds()
-        myLayer.clearLayers()
-        fetchFeatures(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat)
-      });
+        function showLayers() {
+          let i = 0;
+          theMap.eachLayer(function(layer) {i += 1})
+          console.log("layer count", i)
+        }
 
-      var bounds = mymap.getBounds()
-      fetchFeatures(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat)
+        var firstLoad = true
+
+        theMap.on('moveend', function(event){
+          var bounds = event.target.getBounds()
+          geojsonLocalAreaDistrict.clearLayers()
+          <!-- fetchFeatures_old(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat) -->
+          fetchFeatures(progressCallback, buildUrl(bounds), geojsonLocalAreaDistrict).then(
+            geoJsonLayer => {console.log("fetch complete")}
+          ).catch(
+            console.error
+          )
+        });
+
+        var bounds = theMap.getBounds()
+        fetchFeatures(progressCallback, buildUrl(bounds), geojsonLocalAreaDistrict).then(
+          geoJsonLayer => {console.log("fetch complete")}
+        ).catch(
+          console.error
+        );
 
     </script>
   </div>
