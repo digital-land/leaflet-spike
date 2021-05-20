@@ -1,8 +1,10 @@
 <head>
   <style>
     #mapid { height: 80%; }
+    .deactivated-control { color: #b1b4b6; }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+  <link href="https://digital-land.github.io/stylesheets/dl-frontend.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -10,7 +12,28 @@
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
 
   <div id="control"><button onclick="showLayers()">Show Layers</button></div>
-  <div id="mapid"></div>
+
+  <div class="dl-map__wrapper">
+    <div id="mapid"></div>
+    <div class="dl-map__side-panel">
+      <div class="dl-map__side-panel__section">
+        <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Data layers</h3>
+      </div>
+      <div class="dl-map__side-panel__section">
+        <ul class="govuk-list" data-module="layer-controls">
+          <li data-layer-control="local-authority-district" data-layer-control-active="true">Local authority districts</li>
+          <li data-layer-control="conservation-area" data-layer-control-active="true">Conservation areas</li>
+          <li data-layer-control="brownfield-land" data-layer-control-active="true">Brownfield land</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+    <script src="layer-controls.js"></script>
+    <script>
+      const $controlsList = document.querySelector('[data-module="layer-controls"]')
+      const layerControlsComponent = new LayerControls($controlsList).init({})
+    </script>
     <script>
       var theMap = L.map('mapid').setView([51.505, -0.09], 8);
 
