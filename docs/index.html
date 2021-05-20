@@ -1,6 +1,7 @@
 <head>
   <style>
     #mapid { height: 80%; }
+    .deactivated-control { color: #b1b4b6; }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
   <link href="https://digital-land.github.io/stylesheets/dl-frontend.css" rel="stylesheet" />
@@ -20,9 +21,9 @@
       </div>
       <div class="dl-map__side-panel__section">
         <ul class="govuk-list" data-module="layer-controls">
-          <li data-layer-control="local-authority-district">Local authority districts</li>
-          <li data-layer-control="conservation-area">Conservation areas</li>
-          <li data-layer-control="brownfield-land">Brownfield land</li>
+          <li data-layer-control="local-authority-district" data-layer-control-active="true">Local authority districts</li>
+          <li data-layer-control="conservation-area" data-layer-control-active="true">Conservation areas</li>
+          <li data-layer-control="brownfield-land" data-layer-control-active="true">Brownfield land</li>
         </ul>
       </div>
     </div>
