@@ -60,7 +60,7 @@
               response.json().then(data => { 
                 geoJsonLayer.addData(data)
 
-                if(data.length >= pageSize && firstLoad) {
+                if(data.length >= pageSize) {
                   progress && progress(geoJsonLayer);
                   lastItem = data[data.length - 1]
                   let nextUrl = url
@@ -101,9 +101,15 @@
           onEachFeature: onEachFeature,
         }
 
+        var geojsonLocalAuthorityDistrict = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonConservationArea = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
-        var geojsonLocalAreaDistrict = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonBrownfieldLand = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
+
+        var layerMap = {
+          "local-authority-district": geojsonLocalAuthorityDistrict,
+          "conservation-area": geojsonConservationArea,
+          "brownfield-land": geojsonBrownfieldLand,
+        }
 
         function onEachFeature(feature, layer) {
           if (feature.properties) {
@@ -115,30 +121,27 @@
           }
         }
 
-        function showLayers() {
-          let i = 0;
-          theMap.eachLayer(function(layer) {i += 1})
-          console.log("layer count", i)
+        function fetchAll(bounds=theMap.getBounds()) {
+          for (const [key, value] of Object.entries(layerMap)) {
+            value.clearLayers()
+          }
+          layerControlsComponent.activeLayers().forEach(layer => {
+            let type_ = layer.dataset.layerControl
+            console.log("fetching", type_)
+            fetchFeatures(progressCallback, buildUrl(bounds, theMap.getZoom(), type_), layerMap[type_]).then(
+              geoJsonLayer => {console.log("fetch complete", type_)}
+            ).catch(
+              console.error
+            )
+          })
         }
-
-        var firstLoad = true
 
         theMap.on('moveend', function(event){
           var bounds = event.target.getBounds()
-          geojsonLocalAreaDistrict.clearLayers()
-          fetchFeatures(progressCallback, buildUrl(bounds, theMap.getZoom()), geojsonLocalAreaDistrict).then(
-            geoJsonLayer => {console.log("fetch complete")}
-          ).catch(
-            console.error
-          )
+          fetchAll(bounds)
         });
 
-        var bounds = theMap.getBounds()
-        fetchFeatures(progressCallback, buildUrl(bounds), geojsonLocalAreaDistrict).then(
-          geoJsonLayer => {console.log("fetch complete")}
-        ).catch(
-          console.error
-        );
+        fetchAll()
 
     </script>
   </div>
