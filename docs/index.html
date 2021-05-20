@@ -31,11 +31,27 @@
   
     <script src="layer-controls.js"></script>
     <script>
-      const $controlsList = document.querySelector('[data-module="layer-controls"]')
-      const layerControlsComponent = new LayerControls($controlsList).init({})
-    </script>
-    <script>
+      // callback used when layer control is clicked
+      function toggleLayer(map, datasetName, add) {
+        const layer = layerMap[datasetName]
+        if (add) {
+          if (map._fetchSinceControlAction) {
+            // if something has changed since layer last shown then trigger fetch all
+            // can further improve by fetching only reenable layer
+            fetchAll()
+          }
+          map.addLayer(layer)
+        } else {
+          map.removeLayer(layer)
+        }
+      }
+
       var theMap = L.map('mapid').setView([51.505, -0.09], 8);
+
+      const $controlsList = document.querySelector('[data-module="layer-controls"]')
+      const layerControlsComponent = new LayerControls($controlsList, theMap).init({
+        toggleControlCallback: toggleLayer
+      })
 
       var baseUrl = "https://datasette-demo.digital-land.info/view_model"
       <!-- baseUrl = "http://localhost:8091/view_model" -->
@@ -128,9 +144,10 @@
           layerControlsComponent.activeLayers().forEach(layer => {
             let type_ = layer.dataset.layerControl
             console.log("fetching", type_)
-            fetchFeatures(progressCallback, buildUrl(bounds, theMap.getZoom(), type_), layerMap[type_]).then(
-              geoJsonLayer => {console.log("fetch complete", type_)}
-            ).catch(
+            fetchFeatures(progressCallback, buildUrl(bounds, theMap.getZoom(), type_), layerMap[type_]).then(function (geoJsonLayer) {
+              console.log("fetch complete", type_)
+              theMap._fetchSinceControlAction = true
+            }).catch(
               console.error
             )
           })

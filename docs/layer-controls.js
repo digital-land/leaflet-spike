@@ -1,3 +1,7 @@
+function isFunction (x) {
+  return Object.prototype.toString.call(x) === '[object Function]'
+}
+
 function nodeListForEach (nodes, callback) {
   if (window.NodeList.prototype.forEach) {
     return nodes.forEach(callback)
@@ -7,8 +11,9 @@ function nodeListForEach (nodes, callback) {
   }
 }
 
-function LayerControls ($module) {
+function LayerControls ($module, leafletMap) {
   this.$module = $module
+  this.map = leafletMap
 }
 
 LayerControls.prototype.init = function (params) {
@@ -30,17 +35,24 @@ LayerControls.prototype.onControlClick = function (e) {
   console.log("I've been clicked", e.target, this)
   var $currentControl = e.target
   this.toggleActive($currentControl)
+  this.map._fetchSinceControlAction = false
 }
 
 LayerControls.prototype.toggleActive = function ($control) {
-  console.log($control)
+  let enabling
   if ($control.dataset.layerControlActive === 'true') {
     $control.dataset.layerControlActive = 'false'
     $control.classList.add(this.layerControlDeactivatedClass)
     console.log('currently active so deactivating', this.layerControlDeactivatedClass)
+    enabling = false
   } else {
     $control.dataset.layerControlActive = 'true'
     $control.classList.remove(this.layerControlDeactivatedClass)
+    enabling = true
+  }
+  // run provided callback
+  if (this.toggleControlCallback && isFunction(this.toggleControlCallback)) {
+    this.toggleControlCallback(this.map, this.datasetType($control), enabling)
   }
 }
 
@@ -60,4 +72,5 @@ LayerControls.prototype.setupOptions = function (params) {
   params = params || {}
   this.layerControlSelector = params.layerControlSelector || '[data-layer-control]'
   this.layerControlDeactivatedClass = params.layerControlDeactivatedClass || 'deactivated-control'
+  this.toggleControlCallback = params.toggleControlCallback || undefined
 }
