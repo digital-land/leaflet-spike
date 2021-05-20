@@ -55,8 +55,16 @@
           console.log(`${geoJsonLayer.getLayers().length} features fetched`);
         }
 
-        function buildUrl(bounds, after_rowid=0) {
-          return new URL(`${baseUrl}/bounded_geography_simplified_paged.json?_json=geojson_simple&_shape=arrayfirst&bbox_minx=${bounds._southWest.lng}&bbox_maxx=${bounds._northEast.lng}&bbox_miny=${bounds._southWest.lat}&bbox_maxy=${bounds._northEast.lat}&after=${after_rowid}`)
+        function buildUrl(bounds, zoomLevel, type=false, after_rowid=0) {
+          var query = "bounded_geography_simplified_paged"
+          if (zoomLevel > 11) {query = "bounded_geography_full_paged"}
+          if (type) {query = `${query}_by_type`}
+
+          url = new URL(`${baseUrl}/${query}.json?_json=geojson&_shape=arrayfirst&bbox_minx=${bounds._southWest.lng}&bbox_maxx=${bounds._northEast.lng}&bbox_miny=${bounds._southWest.lat}&bbox_maxy=${bounds._northEast.lat}&after=${after_rowid}`)
+
+          if (type) url.searchParams.set("type", type)
+
+          return url
         }
 
         var geoJsonLayerOptions = {
@@ -95,8 +103,7 @@
         theMap.on('moveend', function(event){
           var bounds = event.target.getBounds()
           geojsonLocalAreaDistrict.clearLayers()
-          <!-- fetchFeatures_old(bounds._southWest.lng, bounds._northEast.lng, bounds._southWest.lat, bounds._northEast.lat) -->
-          fetchFeatures(progressCallback, buildUrl(bounds), geojsonLocalAreaDistrict).then(
+          fetchFeatures(progressCallback, buildUrl(bounds, theMap.getZoom()), geojsonLocalAreaDistrict).then(
             geoJsonLayer => {console.log("fetch complete")}
           ).catch(
             console.error
