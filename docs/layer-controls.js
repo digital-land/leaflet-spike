@@ -22,18 +22,21 @@ LayerControls.prototype.init = function (params) {
   var $controls = this.$module.querySelectorAll(this.layerControlSelector)
   this.$controls = Array.prototype.slice.call($controls)
 
-  var boundControlClickHandler = this.onControlClick.bind(this)
+  var boundControlChkbxChangeHandler = this.onControlChkbxChange.bind(this)
 
   this.$controls.forEach(function ($control) {
-    $control.addEventListener('click', boundControlClickHandler, true)
-  })
+    console.log(this)
+    this.initialState($control)
+    $control.addEventListener('change', boundControlChkbxChangeHandler, true)
+  }, this)
 
   return this
 }
 
-LayerControls.prototype.onControlClick = function (e) {
-  console.log("I've been clicked", e.target, this)
-  var $currentControl = e.target
+LayerControls.prototype.onControlChkbxChange = function (e) {
+  console.log("I've been changed", e.target, this)
+
+  var $currentControl = e.target.closest(this.layerControlSelector)
   this.toggleActive($currentControl)
   this.map._fetchSinceControlAction = false
 }
@@ -53,6 +56,17 @@ LayerControls.prototype.toggleActive = function ($control) {
   // run provided callback
   if (this.toggleControlCallback && isFunction(this.toggleControlCallback)) {
     this.toggleControlCallback(this.map, this.datasetType($control), enabling)
+  }
+}
+
+LayerControls.prototype.initialState = function ($control) {
+  const $chkbx = $control.querySelector('input[type="checkbox"]')
+  if ($control.dataset.layerControlActive === 'true') {
+    $chkbx.checked = true
+    $control.classList.remove(this.layerControlDeactivatedClass)
+  } else {
+    $chkbx.checked = false
+    $control.classList.add(this.layerControlDeactivatedClass)
   }
 }
 

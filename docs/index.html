@@ -1,7 +1,7 @@
 <head>
   <style>
     #mapid { height: 80%; }
-    .deactivated-control { color: #b1b4b6; }
+    .deactivated-control label { color: #505a5f; }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
   <link href="https://digital-land.github.io/stylesheets/dl-frontend.css" rel="stylesheet" />
@@ -20,10 +20,31 @@
         <h3 class="govuk-heading-s govuk-!-margin-bottom-0">Data layers</h3>
       </div>
       <div class="dl-map__side-panel__section">
-        <ul class="govuk-list" data-module="layer-controls">
-          <li data-layer-control="local-authority-district" data-layer-control-active="true">Local authority districts</li>
-          <li data-layer-control="conservation-area" data-layer-control-active="true">Conservation areas</li>
-          <li data-layer-control="brownfield-land" data-layer-control-active="true">Brownfield land</li>
+        <ul class="govuk-list govuk-!-margin-bottom-0" data-module="layer-controls">
+          <li class="govuk-!-margin-bottom-2" data-layer-control="local-authority-district" data-layer-control-active="true">
+            <div class="govuk-checkboxes__item">
+              <input class="govuk-checkboxes__input" id="local-authority-district" name="local-authority-district" type="checkbox" value="local-authority-district">
+              <label class="govuk-label govuk-checkboxes__label" for="local-authority-district">
+                Local authority districts
+              </label>
+            </div>
+          </li>
+          <li class="govuk-!-margin-bottom-2" data-layer-control="conservation-area" data-layer-control-active="false">
+            <div class="govuk-checkboxes__item">
+              <input class="govuk-checkboxes__input" id="conservation-area" name="conservation-area" type="checkbox" value="conservation-area">
+              <label class="govuk-label govuk-checkboxes__label" for="conservation-area">
+                Conservation areas
+              </label>
+            </div>
+          </li>
+          <li class="govuk-!-margin-bottom-2" data-layer-control="brownfield-land" data-layer-control-active="false">
+            <div class="govuk-checkboxes__item">
+              <input class="govuk-checkboxes__input" id="brownfield-land" name="brownfield-land" type="checkbox" value="brownfield-land">
+              <label class="govuk-label govuk-checkboxes__label" for="brownfield-land">
+                Brownfield land
+              </label>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
