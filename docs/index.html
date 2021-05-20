@@ -10,6 +10,7 @@
 
   <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+  <script src="./leaflet.permalink.min.js"></script>
 
   <div id="control"><button onclick="showLayers()">Show Layers</button></div>
 
@@ -46,7 +47,15 @@
         }
       }
 
-      var theMap = L.map('mapid').setView([51.505, -0.09], 8);
+      var mappos = L.Permalink.getMapLocation();
+      console.log(mappos)
+      var theMap = L.map('mapid', {
+        center: mappos.center,
+        zoom: mappos.zoom
+      });
+      L.Permalink.setup(theMap);
+
+      <!-- var theMap = L.map('mapid').setView([51.505, -0.09], 8); -->
 
       const $controlsList = document.querySelector('[data-module="layer-controls"]')
       const layerControlsComponent = new LayerControls($controlsList, theMap).init({
@@ -67,7 +76,7 @@
       }).addTo(theMap);
 
       function fetchFeatures(progress, url, geoJsonLayer) {
-        console.log("fetchFeatures", url.href)
+        console.debug("fetchFeatures", url.href)
         return new Promise((resolve, reject) => fetch(url)
           .then(response => {
               if (response.status !== 200)  {
@@ -91,7 +100,7 @@
         }
 
         function progressCallback(geoJsonLayer) {
-          console.log(`${geoJsonLayer.getLayers().length} features fetched`);
+          console.debug(`${geoJsonLayer.getLayers().length} features fetched`);
         }
 
         function buildUrl(bounds, zoomLevel, type=false, after_rowid=0) {
