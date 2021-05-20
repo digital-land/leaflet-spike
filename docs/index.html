@@ -47,7 +47,7 @@
         }
       }
 
-      var mappos = L.Permalink.getMapLocation();
+      var mappos = L.Permalink.getMapLocation(6, [53.865, -5.101]);
       console.log(mappos)
       var theMap = L.map('mapid', {
         center: mappos.center,
