@@ -49,6 +49,8 @@
     </div>
   </div>
   
+    <!-- NOTE: could run into some load and execution order issues -->
+    <script src="https://digital-land.github.io/javascripts/dl-maps.js"></script>
     <script src="layer-controls.js"></script>
     <script>
       // callback used when layer control is clicked
@@ -151,8 +153,9 @@
 
         var geojsonLocalAuthorityDistrict = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonConservationArea = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
-        var geojsonBrownfieldLand = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
-
+        //var geojsonBrownfieldLand = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
+        var geojsonBrownfieldLand = DLMaps.brownfieldSites.geojsonToLayer(false, geoJsonLayerOptions).addTo(theMap)
+      
         var layerMap = {
           "local-authority-district": geojsonLocalAuthorityDistrict,
           "conservation-area": geojsonConservationArea,
@@ -203,6 +206,7 @@
         });
 
         fetchAll()
+        
 
     </script>
   </div>
