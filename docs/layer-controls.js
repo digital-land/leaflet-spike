@@ -34,7 +34,7 @@ LayerControls.prototype.init = function (params) {
 }
 
 LayerControls.prototype.onControlChkbxChange = function (e) {
-  console.log("I've been changed", e.target, this)
+  console.log("I've been toggled", e.target, this)
 
   var $currentControl = e.target.closest(this.layerControlSelector)
   this.toggleActive($currentControl)
@@ -46,7 +46,7 @@ LayerControls.prototype.toggleActive = function ($control) {
   if ($control.dataset.layerControlActive === 'true') {
     $control.dataset.layerControlActive = 'false'
     $control.classList.add(this.layerControlDeactivatedClass)
-    console.log('currently active so deactivating', this.layerControlDeactivatedClass)
+    console.log('currently active so deactivating', this.datasetType($control))
     enabling = false
   } else {
     $control.dataset.layerControlActive = 'true'

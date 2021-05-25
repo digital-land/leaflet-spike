@@ -203,7 +203,6 @@
             console.log("fetching", type_)
             fetchFeatures(progressCallback, buildUrl(bounds, zoom, type_), layerMap[type_], controller.signal, type_).then(function (geoJsonLayer) {
               console.log("fetch complete", type_)
-              theMap._fetchSinceControlAction = true
             }).catch(() => {
               console.log("caught error from fetch", type_)
               console.error
@@ -214,6 +213,7 @@
         theMap.on('moveend', function(event){
           var bounds = event.target.getBounds()
           fetchAll(bounds)
+          theMap._fetchSinceControlAction = true
         });
 
         fetchAll()
