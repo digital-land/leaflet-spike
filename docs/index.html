@@ -52,6 +52,15 @@
               </label>
             </div>
           </li>
+          <li class="govuk-!-margin-bottom-2" data-layer-control="area-of-outstanding-natural-beauty">
+            <div class="govuk-checkboxes__item">
+              <input class="govuk-checkboxes__input" id="area-of-outstanding-natural-beauty" name="area-of-outstanding-natural-beauty" type="checkbox" value="area-of-outstanding-natural-beauty" checked="checked">
+              <label class="govuk-label govuk-checkboxes__label" for="area-of-outstanding-natural-beauty">
+                Area of outstanding natural beauty
+              </label>
+            </div>
+          </li>
+          
         </ul>
       </div>
     </div>
@@ -165,6 +174,7 @@
               case 'conservation-area': return {color: "#78AA00", weight: 2};
               case 'brownfield-land': return {color: "#0078ff", weight: 2};
               case 'heritage-coast': return {color: "#912b88", weight: 2};
+              case 'area-of-outstanding-natural-beauty': return {color: "#d53880", weight: 2};
             }
           },
           onEachFeature: onEachFeature,
@@ -173,6 +183,7 @@
         var geojsonLocalAuthorityDistrict = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonConservationArea = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonHeritageCoast = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
+        var geojsonAreaOfOutstandingNaturalBeauty = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         //var geojsonBrownfieldLand = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonBrownfieldLand = DLMaps.brownfieldSites.geojsonToLayer(false, geoJsonLayerOptions).addTo(theMap)
       
@@ -181,6 +192,7 @@
           "conservation-area": geojsonConservationArea,
           "brownfield-land": geojsonBrownfieldLand,
           "heritage-coast": geojsonHeritageCoast,
+          "area-of-outstanding-natural-beauty": geojsonAreaOfOutstandingNaturalBeauty,
         }
 
         function onEachFeature(feature, layer) {
