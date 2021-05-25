@@ -20,15 +20,15 @@
       </div>
       <div class="dl-map__side-panel__section">
         <ul class="govuk-list govuk-!-margin-bottom-0" data-module="layer-controls">
-          <li class="govuk-!-margin-bottom-2" data-layer-control="local-authority-district" data-layer-control-active="true">
+          <li class="govuk-!-margin-bottom-2" data-layer-control="local-authority-district">
             <div class="govuk-checkboxes__item">
-              <input class="govuk-checkboxes__input" id="local-authority-district" name="local-authority-district" type="checkbox" value="local-authority-district">
+              <input class="govuk-checkboxes__input" id="local-authority-district" name="local-authority-district" type="checkbox" value="local-authority-district" checked="checked">
               <label class="govuk-label govuk-checkboxes__label" for="local-authority-district">
                 Local authority districts
               </label>
             </div>
           </li>
-          <li class="govuk-!-margin-bottom-2" data-layer-control="conservation-area" data-layer-control-active="false">
+          <li class="govuk-!-margin-bottom-2" data-layer-control="conservation-area">
             <div class="govuk-checkboxes__item">
               <input class="govuk-checkboxes__input" id="conservation-area" name="conservation-area" type="checkbox" value="conservation-area">
               <label class="govuk-label govuk-checkboxes__label" for="conservation-area">
@@ -36,7 +36,7 @@
               </label>
             </div>
           </li>
-          <li class="govuk-!-margin-bottom-2" data-layer-control="brownfield-land" data-layer-control-active="false">
+          <li class="govuk-!-margin-bottom-2" data-layer-control="brownfield-land">
             <div class="govuk-checkboxes__item">
               <input class="govuk-checkboxes__input" id="brownfield-land" name="brownfield-land" type="checkbox" value="brownfield-land">
               <label class="govuk-label govuk-checkboxes__label" for="brownfield-land">
@@ -44,9 +44,9 @@
               </label>
             </div>
           </li>
-          <li class="govuk-!-margin-bottom-2" data-layer-control="heritage-coast" data-layer-control-active="true">
+          <li class="govuk-!-margin-bottom-2" data-layer-control="heritage-coast">
             <div class="govuk-checkboxes__item">
-              <input class="govuk-checkboxes__input" id="heritage-coast" name="heritage-coast" type="checkbox" value="heritage-coast">
+              <input class="govuk-checkboxes__input" id="heritage-coast" name="heritage-coast" type="checkbox" value="heritage-coast" checked="checked">
               <label class="govuk-label govuk-checkboxes__label" for="heritage-coast">
                 Heritage coast
               </label>
@@ -65,12 +65,22 @@
       function toggleLayer(map, datasetName, add) {
         const layer = layerMap[datasetName]
         if (add) {
+          map.addLayer(layer)
+
+          /* Not sure this is efficient
+              What to limit the number of fetch requests. If layer toggled off then on
+              with no move of the map there is no need to fetch all the features again */
+
           if (map._fetchSinceControlAction) {
             // if something has changed since layer last shown then trigger fetch all
             // can further improve by fetching only reenable layer
             fetchAll()
+            map._fetchSinceControlAction = false
           }
-          map.addLayer(layer)
+          if (layer.getLayers().length === 0) {
+            // if contains no layers then maybe no fetch has been done before
+            fetchAll()
+          }
         } else {
           map.removeLayer(layer)
         }
@@ -192,7 +202,7 @@
             value.clearLayers()
           }
           controller = new AbortController();
-          layerControlsComponent.activeLayers().forEach(layer => {
+          layerControlsComponent.enabledLayers().forEach(layer => {
             let type_ = layer.dataset.layerControl
             let zoom = theMap.getZoom()
             if (type_ == "brownfield-land" && zoom < 13) {return}
