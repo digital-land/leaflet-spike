@@ -44,6 +44,14 @@
               </label>
             </div>
           </li>
+          <li class="govuk-!-margin-bottom-2" data-layer-control="heritage-coast" data-layer-control-active="true">
+            <div class="govuk-checkboxes__item">
+              <input class="govuk-checkboxes__input" id="heritage-coast" name="heritage-coast" type="checkbox" value="heritage-coast">
+              <label class="govuk-label govuk-checkboxes__label" for="heritage-coast">
+                Heritage coast
+              </label>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
@@ -146,6 +154,7 @@
               case 'local-authority-district': return {color: "#EE7800", weight: 2};
               case 'conservation-area': return {color: "#78AA00", weight: 2};
               case 'brownfield-land': return {color: "#0078ff", weight: 2};
+              case 'heritage-coast': return {color: "#912b88", weight: 2};
             }
           },
           onEachFeature: onEachFeature,
@@ -153,6 +162,7 @@
 
         var geojsonLocalAuthorityDistrict = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonConservationArea = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
+        var geojsonHeritageCoast = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         //var geojsonBrownfieldLand = L.geoJSON(false, geoJsonLayerOptions).addTo(theMap)
         var geojsonBrownfieldLand = DLMaps.brownfieldSites.geojsonToLayer(false, geoJsonLayerOptions).addTo(theMap)
       
@@ -160,6 +170,7 @@
           "local-authority-district": geojsonLocalAuthorityDistrict,
           "conservation-area": geojsonConservationArea,
           "brownfield-land": geojsonBrownfieldLand,
+          "heritage-coast": geojsonHeritageCoast,
         }
 
         function onEachFeature(feature, layer) {
